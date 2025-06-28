@@ -20,7 +20,7 @@ module.exports = (sequelize, DataTypes) => {
     profile: DataTypes.STRING,
     password: DataTypes.STRING,
     country: DataTypes.STRING,
-    subscribedPlan: DataTypes.STRING,
+    referralCode: DataTypes.STRING,
     emailVerified: DataTypes.BOOLEAN,
     balance: DataTypes.FLOAT,
     withdrawBalance: DataTypes.FLOAT

@@ -27,7 +27,7 @@ module.exports = {
       country: {
         type: Sequelize.STRING
       },
-      subscribedPlan: {
+      referralCode: {
         type: Sequelize.STRING
       },
       emailVerified: {

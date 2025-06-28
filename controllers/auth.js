@@ -6,7 +6,7 @@ const v = new Validator();
 
 const signUp = async (req, res) => {
     try {
-        const { fullName, email, phoneNo, profile, password, country, emailVerified } = req.body;
+        const { fullName, email, phoneNo, profile, password, country, emailVerified, referralCode } = req.body;
 
         const existingUser = await models.User.findOne({ where: { email } });
         if (existingUser) {
@@ -15,12 +15,12 @@ const signUp = async (req, res) => {
 
         const user = { fullName, email, phoneNo, profile, password, country, emailVerified };
         const schema = {
-            fullName: { type: "string", min: 5 },
+            fullName: { type: "string", min: 5, optional: true },
             email: { type: "string", min: 10 },
             phoneNo: { type: "string", optional: true },
             profile: { type: "string", optional: true },
             password: { type: "string", min: 8 },
-            country: { type: "string", optional: true },
+            referralCode: { type: "string", optional: true },
             emailVerified: { type: "boolean", optional: true },
         };
 
@@ -31,7 +31,6 @@ const signUp = async (req, res) => {
 
         user.password = await bcrypt.hash(password, 12);
         user.emailVerified = false;
-        user.subscribedPlan = 'free';
 
         const newUser = await models.User.create(user);
 
@@ -93,14 +92,14 @@ const signIn = async (req, res) => {
 
 const updateProfile = async (req, res) => {
     try {
-        const { id, fullName, email, phoneNo, profile, password, country, subscribedPlan, emailVerified } = req.body;
+        const { id, fullName, email, phoneNo, profile, password, country, referralCode, emailVerified } = req.body;
 
         const user = await models.User.findOne({ where: { id } });
         if (!user) {
             return res.status(404).json({ status: 404, message: 'User not found' });
         }
 
-        const updatedData = { fullName, email, phoneNo, profile, password, country, subscribedPlan, emailVerified };
+        const updatedData = { fullName, email, phoneNo, profile, password, country, referralCode, emailVerified };
 
         const schema = {
             fullName: { type: "string", min: 5, optional: true },
@@ -109,7 +108,7 @@ const updateProfile = async (req, res) => {
             profile: { type: "string", optional: true },
             password: { type: "string", min: 8, optional: true },
             country: { type: "string", optional: true },
-            subscribedPlan: { type: "string", optional: true },
+            referralCode: { type: "string", optional: true },
             emailVerified: { type: "boolean", optional: true }
         };
 

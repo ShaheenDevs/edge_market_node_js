@@ -1,0 +1,119 @@
+{
+  "info": {
+    "_postman_id": "f834b9c7-cf0e-4dbb-a3e7-kyc-api",
+    "name": "KYC API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Create KYC",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "selfieImage",
+              "type": "file",
+              "src": ""
+            },
+            {
+              "key": "documentImage",
+              "type": "file",
+              "src": ""
+            },
+            {
+              "key": "documentType",
+              "value": "CNIC",
+              "type": "text"
+            },
+            {
+              "key": "paymentId",
+              "value": "1",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/kyc",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "kyc"]
+        }
+      }
+    },
+    {
+      "name": "Get All KYCs",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "url": {
+          "raw": "http://localhost:3000/api/kyc",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "kyc"]
+        }
+      }
+    },
+    {
+      "name": "Get KYC by ID",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "url": {
+          "raw": "http://localhost:3000/api/kyc/1",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "kyc", "1"]
+        }
+      }
+    },
+    {
+      "name": "Update KYC Status",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"approved\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/kyc/status/1",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "kyc", "status", "1"]
+        }
+      }
+    },
+    {
+      "name": "Delete KYC",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "url": {
+          "raw": "http://localhost:3000/api/kyc/1",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "kyc", "1"]
+        }
+      }
+    }
+  ]
+}

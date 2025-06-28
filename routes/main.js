@@ -2,12 +2,14 @@ const express = require('express');
 const router = express.Router();
 const authRouter = require('./auth')
 const kycRouter = require('./kyc')
+const leaderboardRouter = require('./leaderboard')
 const versionRouter = require('./version')
 const notificationRouter = require('./notification')
 const imageRouter = require('./image')
 
 router.use('/auth', authRouter)
 router.use('/kyc', kycRouter)
+router.use('/leaderboard', leaderboardRouter)
 // router.use('/version', versionRouter)
 // router.use('/notification', notificationRouter)
 // router.use('/image', imageRouter)

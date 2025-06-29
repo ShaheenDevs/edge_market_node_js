@@ -23,7 +23,10 @@ module.exports = (sequelize, DataTypes) => {
     referralCode: DataTypes.STRING,
     emailVerified: DataTypes.BOOLEAN,
     balance: DataTypes.FLOAT,
-    withdrawBalance: DataTypes.FLOAT
+    withdrawBalance: DataTypes.FLOAT,
+    referralBy: DataTypes.INTEGER,
+    language: DataTypes.STRING,
+    kycStatus: DataTypes.STRING,
   }, {
     sequelize,
     modelName: 'User',

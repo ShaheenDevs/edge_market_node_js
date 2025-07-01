@@ -92,14 +92,14 @@ const signIn = async (req, res) => {
 
 const updateProfile = async (req, res) => {
     try {
-        const { id, fullName, email, phoneNo, profile, password, country, referralCode, emailVerified } = req.body;
+        const { id, fullName, email, phoneNo, profile, password, country, referralCode, emailVerified, referralsBy, language, kycStatus } = req.body;
 
         const user = await models.User.findOne({ where: { id } });
         if (!user) {
             return res.status(404).json({ status: 404, message: 'User not found' });
         }
 
-        const updatedData = { fullName, email, phoneNo, profile, password, country, referralCode, emailVerified };
+        const updatedData = { fullName, email, phoneNo, profile, password, country, referralCode, emailVerified, referralsBy, language, kycStatus };
 
         const schema = {
             fullName: { type: "string", min: 5, optional: true },
@@ -109,7 +109,10 @@ const updateProfile = async (req, res) => {
             password: { type: "string", min: 8, optional: true },
             country: { type: "string", optional: true },
             referralCode: { type: "string", optional: true },
-            emailVerified: { type: "boolean", optional: true }
+            emailVerified: { type: "boolean", optional: true },
+            language: { type: "string", optional: true },
+            kycStatus: { type: "string", optional: true },
+            referralsBy: { type: "number", optional: true },        
         };
 
         const validationResponse = v.validate(updatedData, schema);

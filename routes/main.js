@@ -13,8 +13,8 @@ router.use('/kyc', kycRouter)
 router.use('/leaderboard', leaderboardRouter)
 router.use('/referrals', referralsRouter)
 // router.use('/version', versionRouter)
-// router.use('/notification', notificationRouter)
-// router.use('/image', imageRouter)
+router.use('/notification', notificationRouter)
+router.use('/image', imageRouter)
 
 module.exports = router;
 

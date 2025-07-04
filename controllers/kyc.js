@@ -18,23 +18,46 @@ const createKyc = async (req, res) => {
   upload(req, res, async (err) => {
     if (err) return res.status(500).json({ status: 500, message: 'Upload error', error: err.message });
 
-    const { documentType, paymentId } = req.body;
+    const { documentType, paymentId, userId } = req.body;
 
-    if (!req.files.selfieImage || !req.files.documentImage || !documentType)
+    if (!req.files.selfieImage || !req.files.documentImage || !documentType || !userId)
       return res.status(400).json({ status: 400, message: 'All fields are required' });
 
     try {
+      // Step 1: Create KYC entry
       const kyc = await models.Kyc.create({
         selfieImage: req.files.selfieImage[0].path,
         documentImage: req.files.documentImage[0].path,
         documentType,
         paymentId,
+        userId,
         status: 'pending'
       });
 
-      return res.status(201).json({ status: 201, message: 'KYC submitted', data: kyc });
+      // Step 2: Update user profile and KYC status
+      const user = await models.User.findOne({ where: { id: userId } });
+
+      if (!user) {
+        return res.status(404).json({ status: 404, message: 'User not found' });
+      }
+
+      await user.update({
+        profile: req.files.documentImage[0].path,
+        kycStatus: 'pending'
+      });
+
+      return res.status(201).json({
+        status: 201,
+        message: 'KYC submitted and user profile updated',
+        data: { kyc, user }
+      });
     } catch (error) {
-      return res.status(500).json({ status: 500, message: 'Database error', error: error.message });
+      console.error("createKyc error:", error);
+      return res.status(500).json({
+        status: 500,
+        message: 'Database error',
+        error: error.message
+      });
     }
   });
 };

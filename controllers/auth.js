@@ -90,6 +90,36 @@ const signIn = async (req, res) => {
     }
 };
 
+const getUser = async (req, res) => {
+    try {
+        const userId = req.params.id;
+
+        const user = await models.User.findByPk(userId);
+        if (!user) {
+            return res.status(404).json({ status: 404, message: 'User not found' });
+        }
+        const token = jwt.sign(
+            { userId: user.id, email: user.email },
+            process.env.JWT_SECRET,
+            { expiresIn: '7d' }
+        );
+
+        return res.status(200).json({
+            status: 200,
+            message: "User data retrieved successfully",
+            data: {
+                ...user.toJSON(),
+                token,
+                expiresIn: "7d"
+            }
+        });
+    } catch (error) {
+        console.error("Get user error:", error);
+        return res.status(500).json({ status: 500, message: "Failed to retrieve user", error: error.message });
+    }
+};
+
+
 const updateProfile = async (req, res) => {
     try {
         const { id, fullName, email, phoneNo, profile, password, country, referralCode, emailVerified, referralsBy, language, kycStatus } = req.body;
@@ -112,7 +142,7 @@ const updateProfile = async (req, res) => {
             emailVerified: { type: "boolean", optional: true },
             language: { type: "string", optional: true },
             kycStatus: { type: "string", optional: true },
-            referralsBy: { type: "number", optional: true },        
+            referralsBy: { type: "number", optional: true },
         };
 
         const validationResponse = v.validate(updatedData, schema);
@@ -178,6 +208,7 @@ const updateVerification = async (req, res) => {
 module.exports = {
     signUp,
     signIn,
+    getUser,
     updateProfile,
     delUser,
     updateVerification

@@ -11,6 +11,7 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+      Kyc.belongsTo(models.User, { foreignKey: 'userId', as: 'user' });
     }
   }
   Kyc.init({

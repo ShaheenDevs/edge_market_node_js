@@ -7,6 +7,7 @@ const router = express.Router();
 // Auth routes
 router.post('/signUp', authCtrl.signUp);                       // Create account
 router.post('/signIn', authCtrl.signIn);                       // Login
+router.get('/getUser/:id', authCtrl.getUser);
 router.put('/updateProfile', checkAuth, authCtrl.updateProfile); // Update user info
 router.post('/updateVerification', authCtrl.updateVerification); // Email verification
 router.delete('/user/:id', checkAuth, authCtrl.delUser);         // Delete user

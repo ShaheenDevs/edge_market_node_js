@@ -7,6 +7,7 @@ const referralsRouter = require('./referrals')
 const versionRouter = require('./version')
 const notificationRouter = require('./notification')
 const walletRouter = require('./wallet')
+const paymentRouter = require('./payment')
 const imageRouter = require('./image')
 
 router.use('/auth', authRouter)
@@ -16,6 +17,7 @@ router.use('/referrals', referralsRouter)
 // router.use('/version', versionRouter)
 router.use('/notification', notificationRouter)
 router.use('/wallet', walletRouter)
+router.use('/payment', paymentRouter)
 router.use('/image', imageRouter)
 
 module.exports = router;

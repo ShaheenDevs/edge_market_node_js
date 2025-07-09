@@ -10,7 +10,8 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage }).fields([
   { name: 'selfieImage', maxCount: 1 },
-  { name: 'documentImage', maxCount: 1 }
+  { name: 'documentImage', maxCount: 1 },
+  { name: 'paymentProofImage', maxCount: 1 },
 ]);
 
 // ✅ CREATE
@@ -20,35 +21,54 @@ const createKyc = async (req, res) => {
 
     const { documentType, paymentId, userId } = req.body;
 
-    if (!req.files.selfieImage || !req.files.documentImage || !documentType || !userId)
-      return res.status(400).json({ status: 400, message: 'All fields are required' });
+    if (!req.files.selfieImage || !req.files.documentImage || !req.files.paymentProofImage || !documentType || !userId)
+      return res.status(400).json({ status: 400, message: 'All fields including payment proof are required' });
 
     try {
-      // Step 1: Create KYC entry
-      const kyc = await models.Kyc.create({
-        selfieImage: req.files.selfieImage[0].path,
-        documentImage: req.files.documentImage[0].path,
-        documentType,
-        paymentId,
-        userId,
-        status: 'pending'
-      });
+      // 🔄 Check if KYC already exists for this user
+      let kyc = await models.Kyc.findOne({ where: { userId } });
 
-      // Step 2: Update user profile and KYC status
+      const selfiePath = req.files.selfieImage[0].path;
+      const documentPath = req.files.documentImage[0].path;
+      const paymentProofPath = req.files.paymentProofImage[0].path;
+
+      if (kyc) {
+        // ✅ Update existing KYC
+        await kyc.update({
+          selfieImage: selfiePath,
+          documentImage: documentPath,
+          paymentProofImage: paymentProofPath,
+          documentType,
+          paymentId,
+          status: 'pending'
+        });
+      } else {
+        // ✅ Create new KYC
+        kyc = await models.Kyc.create({
+          selfieImage: selfiePath,
+          documentImage: documentPath,
+          paymentProofImage: paymentProofPath,
+          documentType,
+          paymentId,
+          userId,
+          status: 'pending'
+        });
+      }
+
+      // 🔁 Update User profile and status
       const user = await models.User.findOne({ where: { id: userId } });
-
       if (!user) {
         return res.status(404).json({ status: 404, message: 'User not found' });
       }
 
       await user.update({
-        profile: req.files.documentImage[0].path,
+        profile: documentPath,
         kycStatus: 'pending'
       });
 
       return res.status(201).json({
         status: 201,
-        message: 'KYC submitted and user profile updated',
+        message: kyc ? 'KYC updated and user profile refreshed' : 'KYC created and user profile updated',
         data: { kyc, user }
       });
     } catch (error) {

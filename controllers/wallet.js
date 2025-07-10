@@ -2,6 +2,7 @@ const models = require('../models');
 const Validator = require('fastest-validator');
 const v = new Validator();
 
+// ✅ DEPOSIT
 const deposit = async (req, res) => {
   try {
     const { userId, amount, description } = req.body;
@@ -31,6 +32,15 @@ const deposit = async (req, res) => {
     user.balance += amount;
     await user.save();
 
+    // 🔔 Notify user
+    await models.Notification.create({
+      userId,
+      title: "Deposit Successful",
+      description: `Your deposit of ${amount} has been added to your wallet.`,
+      link: "/wallet",
+      imageUrl: ""
+    });
+
     res.status(200).json({ message: "Deposit successful", balance: user.balance });
   } catch (err) {
     console.error("Deposit error:", err);
@@ -38,6 +48,7 @@ const deposit = async (req, res) => {
   }
 };
 
+// ✅ WITHDRAWAL REQUEST
 const requestWithdrawal = async (req, res) => {
   try {
     const { userId, amount, description } = req.body;
@@ -67,6 +78,15 @@ const requestWithdrawal = async (req, res) => {
       description
     });
 
+    // 🔔 Notify user
+    await models.Notification.create({
+      userId,
+      title: "Withdrawal Request Submitted",
+      description: `Your withdrawal request of ${amount} is under review.`,
+      link: "/transactions",
+      imageUrl: ""
+    });
+
     res.status(200).json({ message: "Withdrawal request submitted for approval" });
   } catch (err) {
     console.error("Withdrawal request error:", err);
@@ -74,6 +94,7 @@ const requestWithdrawal = async (req, res) => {
   }
 };
 
+// ✅ APPROVE WITHDRAWAL
 const approveWithdrawal = async (req, res) => {
   try {
     const { transactionId } = req.params;
@@ -95,6 +116,15 @@ const approveWithdrawal = async (req, res) => {
     user.balance -= transaction.amount;
     await user.save();
 
+    // 🔔 Notify user
+    await models.Notification.create({
+      userId: user.id,
+      title: "Withdrawal Approved",
+      description: `Your withdrawal of ${transaction.amount} has been approved and processed.`,
+      link: "/transactions",
+      imageUrl: ""
+    });
+
     res.status(200).json({ message: "Withdrawal approved and processed", balance: user.balance });
   } catch (err) {
     console.error("Approve withdrawal error:", err);
@@ -102,6 +132,7 @@ const approveWithdrawal = async (req, res) => {
   }
 };
 
+// ✅ REJECT WITHDRAWAL
 const rejectWithdrawal = async (req, res) => {
   try {
     const { transactionId } = req.params;
@@ -114,6 +145,15 @@ const rejectWithdrawal = async (req, res) => {
     transaction.status = "rejected";
     await transaction.save();
 
+    // 🔔 Notify user
+    await models.Notification.create({
+      userId: transaction.userId,
+      title: "Withdrawal Rejected",
+      description: `Your withdrawal of ${transaction.amount} was rejected.`,
+      link: "/transactions",
+      imageUrl: ""
+    });
+
     res.status(200).json({ message: "Withdrawal rejected" });
   } catch (err) {
     console.error("Reject withdrawal error:", err);
@@ -121,11 +161,15 @@ const rejectWithdrawal = async (req, res) => {
   }
 };
 
+// ✅ GET USER TRANSACTIONS
 const getUserTransactions = async (req, res) => {
   try {
     const { userId } = req.params;
 
-    const transactions = await models.WalletTransaction.findAll({ where: { userId }, order: [['createdAt', 'DESC']] });
+    const transactions = await models.WalletTransaction.findAll({
+      where: { userId },
+      order: [['createdAt', 'DESC']]
+    });
 
     res.status(200).json({ transactions });
   } catch (err) {

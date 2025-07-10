@@ -14,7 +14,6 @@ const upload = multer({ storage }).fields([
   { name: 'paymentProofImage', maxCount: 1 },
 ]);
 
-// ✅ CREATE
 const createKyc = async (req, res) => {
   upload(req, res, async (err) => {
     if (err) return res.status(500).json({ status: 500, message: 'Upload error', error: err.message });
@@ -64,6 +63,15 @@ const createKyc = async (req, res) => {
       await user.update({
         profile: documentPath,
         kycStatus: 'pending'
+      });
+
+      // 🔔 Send Notification to User
+      await models.Notification.create({
+        userId: user.id,
+        title: 'KYC Submitted',
+        description: 'Your KYC has been submitted and is under review.',
+        link: '/kyc/status', // adjust this to your frontend path
+        imageUrl: '' // optional, can leave empty or use a default icon
       });
 
       return res.status(201).json({
@@ -125,6 +133,15 @@ const updateKycStatus = async (req, res) => {
     // Update User's KYC Status
     await user.update({ kycStatus: status });
 
+    // Notify the user about their KYC status update
+    await models.Notification.create({
+      userId: user.id,
+      title: `KYC ${status.charAt(0).toUpperCase() + status.slice(1)}`,
+      description: `Your KYC has been ${status}.`,
+      link: `/kyc/status`,
+      imageUrl: ''
+    });
+
     // If newly approved, give 80% of KYC balance to referralBy
     if (status === 'approved' && user.referralBy) {
       const referralBy = await models.User.findOne({ where: { id: user.referralBy } });
@@ -132,8 +149,22 @@ const updateKycStatus = async (req, res) => {
         const refBonus = (kyc.payment || 0) * 0.8;
         const currentBalance = referralBy.balance || 0;
         await referralBy.update({ balance: currentBalance + refBonus });
+        await models.WalletTransaction.create({
+          id: user.id,
+          type: "deposit",
+          amount: kyc.payment ?? 0,
+          status: "approved",
+          description: "Kyc",
+        });
+        // Notify the referrer
+        await models.Notification.create({
+          userId: referralBy.id,
+          title: `Referral Bonus Received`,
+          description: `${user.name || 'Your referral'}’s KYC was approved. You earned ${refBonus} as bonus.`,
+          link: `/wallet`,
+          imageUrl: ''
+        });
       }
-      await models.Notification.create({ userId: referralBy.id, title, description, link, imageUrl });
     }
 
     // Update KYC status

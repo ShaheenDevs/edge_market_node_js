@@ -19,7 +19,7 @@ const createKyc = async (req, res) => {
   upload(req, res, async (err) => {
     if (err) return res.status(500).json({ status: 500, message: 'Upload error', error: err.message });
 
-    const { documentType, paymentId, userId } = req.body;
+    const { documentType, payment, userId } = req.body;
 
     if (!req.files.selfieImage || !req.files.documentImage || !req.files.paymentProofImage || !documentType || !userId)
       return res.status(400).json({ status: 400, message: 'All fields including payment proof are required' });
@@ -39,7 +39,7 @@ const createKyc = async (req, res) => {
           documentImage: documentPath,
           paymentProofImage: paymentProofPath,
           documentType,
-          paymentId,
+          payment,
           status: 'pending'
         });
       } else {
@@ -49,7 +49,7 @@ const createKyc = async (req, res) => {
           documentImage: documentPath,
           paymentProofImage: paymentProofPath,
           documentType,
-          paymentId,
+          payment,
           userId,
           status: 'pending'
         });
@@ -97,18 +97,54 @@ const getKycById = async (req, res) => {
 
 // ✅ UPDATE STATUS
 const updateKycStatus = async (req, res) => {
-  const { id } = req.params;
-  const { status } = req.body;
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
 
-  if (!['pending', 'approved', 'rejected'].includes(status)) {
-    return res.status(400).json({ status: 400, message: 'Invalid status' });
+    if (!['pending', 'approved', 'rejected'].includes(status)) {
+      return res.status(400).json({ status: 400, message: 'Invalid status' });
+    }
+
+    // Find KYC record
+    const kyc = await models.Kyc.findOne({ where: { userId: id } });
+    if (!kyc) {
+      return res.status(404).json({ status: 404, message: 'KYC not found' });
+    }
+
+    // If already approved, return early
+    // if (kyc.status === 'approved') {
+    //   return res.status(200).json({ status: 200, message: 'KYC already approved', data: kyc });
+    // }
+
+    // Find User
+    const user = await models.User.findOne({ where: { id } });
+    if (!user) {
+      return res.status(404).json({ status: 404, message: 'User not found' });
+    }
+
+    // Update User's KYC Status
+    await user.update({ kycStatus: status });
+
+    // If newly approved, give 80% of KYC balance to referralBy
+    if (status === 'approved' && user.referralBy) {
+      const referralBy = await models.User.findOne({ where: { id: user.referralBy } });
+      if (referralBy) {
+        const refBonus = (kyc.payment || 0) * 0.8;
+        const currentBalance = referralBy.balance || 0;
+        await referralBy.update({ balance: currentBalance + refBonus });
+      }
+      await models.Notification.create({ userId: referralBy.id, title, description, link, imageUrl });
+    }
+
+    // Update KYC status
+    await kyc.update({ status });
+
+    return res.status(200).json({ status: 200, message: 'KYC status updated', data: kyc });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ status: 500, message: 'Internal server error' });
   }
-
-  const kyc = await models.Kyc.findByPk(id);
-  if (!kyc) return res.status(404).json({ status: 404, message: 'KYC not found' });
-
-  await kyc.update({ status });
-  res.status(200).json({ status: 200, message: 'Status updated', data: kyc });
 };
 
 // ✅ DELETE

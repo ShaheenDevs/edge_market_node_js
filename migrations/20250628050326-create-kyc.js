@@ -21,7 +21,7 @@ module.exports = {
       status: {
         type: Sequelize.STRING
       },
-      paymentId: {
+      payment: {
         type: Sequelize.INTEGER
       },
       createdAt: {

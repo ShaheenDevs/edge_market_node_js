@@ -63,6 +63,8 @@ const signIn = async (req, res) => {
         if (!user) {
             return res.status(404).json({ status: 404, message: 'No user registered with this email' });
         }
+        // Count how many users were referred by this user
+        const referralCount = await models.User.count({ where: { referralBy: user.id } });
 
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
@@ -80,6 +82,7 @@ const signIn = async (req, res) => {
             message: "Signed in successfully",
             data: {
                 ...user.toJSON(),
+                referralCount,
                 token,
                 expiresIn: "7d"
             }

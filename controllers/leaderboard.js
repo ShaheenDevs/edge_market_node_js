@@ -3,8 +3,8 @@ const models = require('../models');
 const getLeaderboard = async (req, res) => {
   try {
     const topUsers = await models.User.findAll({
-      order: [['withdrawBalance', 'DESC']],
-      attributes: ['id', 'fullName', 'email', 'withdrawBalance', 'profile'],
+      order: [['balance', 'DESC']],
+      attributes: ['id', 'fullName', 'email', 'balance', 'profile'],
       limit: 50 // Top 50 users; adjust as needed
     });
 

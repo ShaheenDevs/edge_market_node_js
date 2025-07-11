@@ -28,6 +28,7 @@ module.exports = (sequelize, DataTypes) => {
     referralBy: DataTypes.INTEGER,
     language: DataTypes.STRING,
     kycStatus: DataTypes.STRING,
+    last_withdrawal: DataTypes.DATE,
   }, {
     sequelize,
     modelName: 'User',

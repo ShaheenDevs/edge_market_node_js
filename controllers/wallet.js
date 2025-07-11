@@ -16,8 +16,11 @@ const deposit = async (req, res) => {
     const validate = v.validate({ userId, amount, description }, schema);
     if (validate !== true) return res.status(400).json({ message: "Validation failed", errors: validate });
 
-    const user = await models.User.findByPk(userId);
-    if (!user) return res.status(404).json({ message: "User not found" });
+    // Update user balance (if you're maintaining it)
+    // const user = await models.User.findByPk(userId);
+    // if (!user) return res.status(404).json({ message: "User not found" });
+    // user.balance += amount;
+    // await user.save();
 
     // Create deposit transaction
     await models.WalletTransaction.create({
@@ -28,9 +31,6 @@ const deposit = async (req, res) => {
       description
     });
 
-    // Update user balance (if you're maintaining it)
-    user.balance += amount;
-    await user.save();
 
     // 🔔 Notify user
     await models.Notification.create({
@@ -87,6 +87,11 @@ const requestWithdrawal = async (req, res) => {
       imageUrl: ""
     });
 
+    // Deduct balance
+    user.balance -= transaction.amount;
+    user.last_withdrawal = new Date();
+    await user.save();
+
     res.status(200).json({ message: "Withdrawal request submitted for approval" });
   } catch (err) {
     console.error("Withdrawal request error:", err);
@@ -113,8 +118,9 @@ const approveWithdrawal = async (req, res) => {
     await transaction.save();
 
     // Deduct balance
-    user.balance -= transaction.amount;
-    await user.save();
+    // user.balance -= transaction.amount;
+    // user.last_withdrawal = new Date();
+    // await user.save();
 
     // 🔔 Notify user
     await models.Notification.create({
@@ -177,10 +183,53 @@ const getUserTransactions = async (req, res) => {
   }
 };
 
+// ✅ GET ALL USER TRANSACTIONS with Pagination & Filter (Admin)
+const getAllUserTransactions = async (req, res) => {
+  try {
+    const {
+      page = 1,
+      limit = 10,
+      userId,
+      type,     // e.g., 'deposit', 'withdrawal'
+      status    // e.g., 'pending', 'approved'
+    } = req.query;
+
+    const offset = (page - 1) * limit;
+    const where = {};
+
+    // Optional filters
+    if (userId) where.userId = userId;
+    if (type) where.type = type;
+    if (status) where.status = status;
+
+    const { count, rows: transactions } = await models.WalletTransaction.findAndCountAll({
+      where,
+      limit: parseInt(limit),
+      offset: parseInt(offset),
+      order: [['createdAt', 'DESC']]
+    });
+
+    res.status(200).json({
+      total: count,
+      page: parseInt(page),
+      totalPages: Math.ceil(count / limit),
+      transactions
+    });
+  } catch (err) {
+    res.status(500).json({
+      message: "Failed to fetch transactions",
+      error: err.message
+    });
+  }
+};
+
+
+
 module.exports = {
   deposit,
   requestWithdrawal,
   approveWithdrawal,
   rejectWithdrawal,
-  getUserTransactions
+  getUserTransactions,
+  getAllUserTransactions,
 };

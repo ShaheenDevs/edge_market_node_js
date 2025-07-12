@@ -2,49 +2,49 @@ const { Op, Sequelize } = require("sequelize");
 const models = require("../models");
 
 const sendMessage = async (req, res) => {
-  try {
-      const { senderId, receiverId, message } = req.body;
+    try {
+        const { senderId, receiverId, message } = req.body;
 
-      if (!senderId || !receiverId || !message) {
-          return res.status(400).json({ status: 400, message: "All fields are required" });
-      }
+        if (senderId === undefined || receiverId === undefined || !message) {
+            return res.status(400).json({ status: 400, message: "All fields are required" });
+        }
 
-      const newMessage = await models.Message.create({ senderId, receiverId, message });
+        const newMessage = await models.Message.create({ senderId, receiverId, message });
 
-      res.status(201).json({ status: 201, message: "Message sent successfully", data: newMessage });
-  } catch (error) {
-      console.error("Send Message Error:", error);
-      res.status(500).json({ status: 500, message: "Error sending message", error: error.message });
-  }
+        res.status(201).json({ status: 201, message: "Message sent successfully", data: newMessage });
+    } catch (error) {
+        console.error("Send Message Error:", error);
+        res.status(500).json({ status: 500, message: "Error sending message", error: error.message });
+    }
 };
 
 const getMessages = async (req, res) => {
-  try {
-      const { senderId, receiverId, page = 1, limit = 10 } = req.query;
+    try {
+        const { senderId, receiverId, page = 1, limit = 10 } = req.query;
 
-      if (!senderId || !receiverId) {
-          return res.status(400).json({ status: 400, message: "Sender and receiver IDs are required" });
-      }
+        if (!senderId || !receiverId) {
+            return res.status(400).json({ status: 400, message: "Sender and receiver IDs are required" });
+        }
 
-      const offset = (page - 1) * limit;
+        const offset = (page - 1) * limit;
 
-      const messages = await models.Message.findAll({
-          where: {
-              [Op.or]: [
-                  { senderId, receiverId },
-                  { senderId: receiverId, receiverId: senderId }
-              ]
-          },
-          order: [['createdAt', 'DESC']],
-          limit: parseInt(limit),
-          offset: parseInt(offset),
-      });
+        const messages = await models.Message.findAll({
+            where: {
+                [Op.or]: [
+                    { senderId, receiverId },
+                    { senderId: receiverId, receiverId: senderId }
+                ]
+            },
+            order: [['createdAt', 'DESC']],
+            limit: parseInt(limit),
+            offset: parseInt(offset),
+        });
 
-      res.status(200).json({ status: 200, message: "Messages retrieved", data: messages });
-  } catch (error) {
-      console.error("Get Messages Error:", error);
-      res.status(500).json({ status: 500, message: "Error fetching messages", error: error.message });
-  }
+        res.status(200).json({ status: 200, message: "Messages retrieved", data: messages });
+    } catch (error) {
+        console.error("Get Messages Error:", error);
+        res.status(500).json({ status: 500, message: "Error fetching messages", error: error.message });
+    }
 };
 
 const getUserList = async (req, res) => {

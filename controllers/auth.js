@@ -15,7 +15,7 @@ const signUp = async (req, res) => {
 
         const user = { fullName, email, phoneNo, profile, password, country, emailVerified };
         const schema = {
-            fullName: { type: "string", min: 5, optional: true },
+            fullName: { type: "string", optional: true },
             email: { type: "string", min: 10 },
             phoneNo: { type: "string", optional: true },
             profile: { type: "string", optional: true },
